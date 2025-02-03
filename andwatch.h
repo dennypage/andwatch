@@ -160,7 +160,7 @@ extern void fatal(
     ...);
 
 // Safe strncpy (ensures null termination)
-void safe_strncpy(
+extern void safe_strncpy(
     char *                      dst,
     const char *                src,
     size_t                      limit);
