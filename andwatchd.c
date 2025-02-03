@@ -186,7 +186,7 @@ static void usage(void)
     fprintf(stderr, "    -P disable promiscuous mode\n");
     fprintf(stderr, "    -S pcap snaplen (default/minimum: %u)\n", PCAP_SNAPLEN);
     fprintf(stderr, "  \nNotes:\n");
-    fprintf(stderr, "    The notification command is invoked as \"cmd date_time ifname ipaddr old_hwaddr new_hwaddr\"\n");
+    fprintf(stderr, "    The notification command is invoked as \"cmd date_time ifname ipaddr old_hwaddr old_hwaddr_org new_hwaddr new_hwaddr_org\"\n");
 
     exit(1);
 }

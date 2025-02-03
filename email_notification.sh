@@ -34,7 +34,7 @@ fi
     printf "%22s: %s\n" "interface" "${ifname}"
     printf "%22s: %s\n" "hostname" "${hostname}"
     printf "%22s: %s\n" "ip address" "${ipaddr}"
-    printf "%22s: %s\n" "new ethernet address" "${new_hwaddr}  ${new_hwaddr_org}"
     printf "%22s: %s\n" "old ethernet address" "${old_hwaddr}  ${old_hwaddr_org}"
+    printf "%22s: %s\n" "new ethernet address" "${new_hwaddr}  ${new_hwaddr_org}"
     printf "\n"
 ) | ${SENDMAIL} -f "${FROM}" "${TO}"
