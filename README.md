@@ -1,9 +1,9 @@
 # ANDwatch - Arp and Neighbor Discovery Watch daemon
 
 ANDwatch monitors Arp (IPv4) and Neighbor Discovery (IPv6) packets,
-maintains a database of IP address to hardware (Ethernet) mappings,
-and issues notifications when the hardware address of an IP address
-changes.
+maintains a database of IP address to hardware address (Ethernet) 
+mappings, and issues notifications when the hardware address of an
+IP address changes.
 
 ANDwatch is intended as a modern replacement for arpwatch. When contrasted with arpwatch, ANDwatch offers the following enhancements:
 - Support for IPv6 addresses.
