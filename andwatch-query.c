@@ -97,7 +97,7 @@ static void parse_args(
         usage();
     }
     ifname = argv[optind];
-    if (argc == optind + 2 && argv[optind + 1][0] != '0')
+    if (argc == optind + 2)
     {
         addr = argv[optind + 1];
     }
