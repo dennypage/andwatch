@@ -86,9 +86,9 @@ The output of andwatch-query contains the following fields:
 
 ## ANDwatch Update MAC Address database (andwatch-update-ma)
 
-The andwatch-update-ma utility downloads the MAC address assignment files
-from IEEE, saves them in the library directory, and then creates or updates the
-ANDwatch MAC Address database in the library directory (/var/lib/andwatch/ma_db.c).
+The andwatch-update-ma utility downloads the MAC address assignment files from
+IEEE, saves them in the library directory, and then creates or updates the ANDwatch
+MAC Address database in the library directory (/var/lib/andwatch/ma_db.sqlite).
 
 The usage of andwatch-update-ma is:
 
