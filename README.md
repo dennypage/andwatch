@@ -29,7 +29,7 @@ The ANDwatch daemon monitors an interface, maintains the IP address / hardware a
 
 The usage of andwatchd is:
 
-	andwatchd [-h] [-f] [-s] [-n cmd] [-p file] [-L dir] [-M minutes] [-O days] [-P] [-S len] ifname
+	andwatchd [-h] [-f] [-s] [-n cmd] [-p file] [-L dir] [-O days] [-P] [-S len] ifname
 
 | Option | Description                                                       |
 |:-------|:------------------------------------------------------------------|
@@ -39,7 +39,6 @@ The usage of andwatchd is:
 | -n | Command to send external notifications.
 | -p | Process id file name.
 | -L | Directory for database files (default: /var/lib/andwatch).
-| -M | Number of minutes between current record updates (default: 10).
 | -O | Number of days before deleting old records (default: 30).
 | -P | Don’t enable promiscuous mode.
 | -S | Snapshot length for pcap (default/minimum: 86).
