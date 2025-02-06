@@ -137,7 +137,6 @@ extern unsigned int             flag_syslog;
 extern const char *             lib_dir;
 extern const char *             ifname;
 extern const char *             notify_cmd;
-extern long                     update_minutes;
 extern long                     delete_days;
 
 //
