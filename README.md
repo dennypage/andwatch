@@ -76,7 +76,7 @@ The output of andwatch-query contains the following fields:
 | field  | description |
 |:-------|:-----------|
 | date time | Timestamp when the record was created. |
-| age | When the record was last updated in minutes. |
+| age | Days since the record was last updated. |
 | IPaddr | The IP address of the record. |
 | HWaddr | The hardware (Ethernet) address of the record. |
 | MA org | Organization name of the MAC Address assignment. |
