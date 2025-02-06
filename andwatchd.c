@@ -173,7 +173,7 @@ __attribute__ ((noreturn))
 static void usage(void)
 {
     fprintf(stderr, "Usage:\n");
-    fprintf(stderr, "  %s [-h] [-f] [-s] [-n cmd] [-p file] [-L dir] [-M minutes] [-O days] [-P] [-S len] ifname\n", progname);
+    fprintf(stderr, "  %s [-h] [-f] [-s] [-n cmd] [-p file] [-L dir] [-O days] [-P] [-S len] ifname\n", progname);
     fprintf(stderr, "  options:\n");
     fprintf(stderr, "    -h display usage\n");
     fprintf(stderr, "    -f run in foreground\n");
@@ -181,7 +181,6 @@ static void usage(void)
     fprintf(stderr, "    -n command for notifications\n");
     fprintf(stderr, "    -p process id file name\n");
     fprintf(stderr, "    -L directory for database files (default: %s)\n", LIB_DIR);
-    fprintf(stderr, "    -M number of minutes between current record updates (default: %u)\n", UPDATE_MINUTES);
     fprintf(stderr, "    -O number of days before deleting old records (default: %u)\n", DELETE_DAYS);
     fprintf(stderr, "    -P disable promiscuous mode\n");
     fprintf(stderr, "    -S pcap snaplen (default/minimum: %u)\n", PCAP_SNAPLEN);
@@ -200,7 +199,7 @@ static void parse_args(
 
     progname = argv[0];
 
-    while((opt = getopt(argc, argv, "hfsn:p:L:M:O:PS:")) != -1)
+    while((opt = getopt(argc, argv, "hfsn:p:L:O:PS:")) != -1)
     {
         switch (opt)
         {
@@ -218,13 +217,6 @@ static void parse_args(
             break;
         case 'L':
             lib_dir = optarg;
-            break;
-        case 'M':
-            update_minutes = strtol(optarg, &p, 10);
-            if (*p != '\0' || update_minutes < 1)
-            {
-                usage();
-            }
             break;
         case 'O':
             delete_days = strtol(optarg, &p, 10);
