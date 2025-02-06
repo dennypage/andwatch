@@ -509,42 +509,6 @@ void db_ipmap_delete_old(
 
 
 //
-// Callback for getting the current (last) values for an ip address
-//
-static int db_ipmap_get_current_callback(
-    void *                      closure,
-    int                         count,
-    char **                     columns,
-    __attribute__ ((unused))
-    char **                     names)
-{
-    ipmap_current_t *           current = (ipmap_current_t *) closure;
-
-    // Expected columns:
-    //      rowid
-    //      age
-    //      hwaddr
-
-    // Safety check
-    if (count < 3)
-    {
-        logger("insufficient columns in ipmap current callback: %d\n", count);
-        return 1;
-    }
-
-    // Save the information
-    current->rowid = strtol(columns[0], NULL, 10);
-    current->age = strtol(columns[1], NULL, 10);
-    safe_strncpy(current->hwaddr_str, columns[2], sizeof(current->hwaddr_str));
-
-    // Mark the current data as valid
-    current->valid = 1;
-
-    return 0;
-}
-
-
-//
 // Get the current (last) values for an ip address
 //
 void db_ipmap_get_current(
@@ -553,7 +517,7 @@ void db_ipmap_get_current(
     const char *                ipaddr,
     ipmap_current_t *           current)
 {
-    char                        sql[ANDWATCH_SQL_BUFFER];
+    static sqlite3_stmt *       query_stmt = NULL;
     int                         r;
 
     // Mark the current data as invalid
@@ -570,24 +534,53 @@ void db_ipmap_get_current(
         "WHERE rowid = (\n" \
             "SELECT rowid\n" \
             "FROM " TBL_IPMAP "\n" \
-            "WHERE " COL_IPTYPE " == %d AND " COL_IPADDR " == '%s'\n" \
+            "WHERE " COL_IPTYPE " == ? AND " COL_IPADDR " == ?\n" \
             "ORDER BY " COL_SEC " DESC," COL_USEC " DESC\n" \
             "LIMIT 1" \
         ")"
 
-    // Safety check: ensure sql buffer is large enough
-    _Static_assert ((sizeof(SQL_IPMAP_GET_CURRENT) + 1 + INET6_ADDRSTRLEN < sizeof(sql)),
-        "SQL_IPMAP_GET_CURRENT exceeds sql buffer size");
+    // If the statement is not prepared, prepare it
+    if (query_stmt == NULL)
+    {
+        r = sqlite3_prepare_v2(db, SQL_IPMAP_GET_CURRENT, sizeof(SQL_IPMAP_GET_CURRENT), &query_stmt, NULL);
+        if (r != SQLITE_OK)
+        {
+            logger("get imap current prepare failed: %s\n", sqlite3_errmsg(db));
+            return;
+        }
+    }
 
-    // Construct the sql
-    snprintf(sql, sizeof(sql), SQL_IPMAP_GET_CURRENT, iptype, ipaddr);
+    // Bind the IP type and IP address
+    r = sqlite3_bind_int(query_stmt, 1, iptype);
+    if (r != SQLITE_OK)
+    {
+        logger("get imap current bind iptype failed: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+    r = sqlite3_bind_text(query_stmt, 2, ipaddr, -1, SQLITE_STATIC);
+    if (r != SQLITE_OK)
+    {
+        logger("get imap current bind ipaddr failed: %s\n", sqlite3_errmsg(db));
+        return;
+    }
 
     // Execute
-    r = sqlite3_exec(db, sql, db_ipmap_get_current_callback, current, NULL);
-    if (r != SQLITE_OK)
+    r = sqlite3_step(query_stmt);
+    if (r == SQLITE_ROW)
+    {
+        current->rowid = sqlite3_column_int64(query_stmt, 0);
+        current->age = sqlite3_column_int64(query_stmt, 1);
+        safe_strncpy(current->hwaddr_str, (char *) sqlite3_column_text(query_stmt, 2), sizeof(current->hwaddr_str));
+        current->valid = 1;
+    }
+    else
     {
         logger("get ipmap get current failed: %s\n", sqlite3_errmsg(db));
     }
+
+    // Cleanup
+    (void) sqlite3_reset(query_stmt);
+    (void) sqlite3_clear_bindings(query_stmt);
 }
 
 
