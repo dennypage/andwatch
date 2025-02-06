@@ -1,7 +1,7 @@
 # ANDwatch - Arp and Neighbor Discovery Watch daemon
 
 ANDwatch monitors Arp (IPv4) and Neighbor Discovery (IPv6) packets,
-maintains a database of IP address to hardware address (Ethernet) 
+maintains a database of IP address to hardware address (Ethernet)
 mappings, and issues notifications when the hardware address of an
 IP address changes.
 
@@ -111,7 +111,7 @@ library directory as shown below, then use the -D option to skip the download.
 Notes:
 * **You must create the MAC Address database before you can use any of the
 other ANDwatch commands**.
-* The MAC Address database should be updated periodically via cron or other mechanism. Once per month is likely sufficient. 
+* The MAC Address database should be updated periodically via cron or other mechanism. Once per month is likely sufficient.
 * There is no need to stop the ANDwatch daemon to update the MAC Address database.
 
 ---
