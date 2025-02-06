@@ -39,15 +39,12 @@
 
 
 // Version number of andwatch
-#define VERSION                 "1.0.1"
+#define VERSION                 "1.1.0"
 
 // Default directory for the andwatch data files
 #ifndef LIB_DIR
 # define LIB_DIR                "/var/lib/andwatch"
 #endif
-
-// Default update time (minutes)
-#define UPDATE_MINUTES          (10)
 
 // Default delete time (days)
 #define DELETE_DAYS             (30)
@@ -127,7 +124,7 @@ typedef struct ipmap_current {
     // Row ID in the table
     long                        rowid;
 
-    // Time in minutes since last update
+    // Number seconds since last update
     long                        age;
 
     // Current hardware address
