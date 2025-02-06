@@ -52,12 +52,10 @@
 # endif
 #endif
 
-// How frequently to perform maintenance
-//#define MAINTENANCE_INTERVAL  (28800)
-#define MAINTENANCE_INTERVAL    (60)
+// How frequently to perform record updates and maintenance
+#define DB_UPDATE_INTERVAL      (28800)
 
 // Command line variables/flags
-long                            update_minutes = UPDATE_MINUTES;
 long                            delete_days = DELETE_DAYS;
 
 // Next time maintenance should be performed
@@ -242,7 +240,7 @@ static void process_arp(
         if (strncmp(arp_sender_hwaddr_str, current.hwaddr_str, INET_ADDRSTRLEN) == 0)
         {
             // Time to update the row?
-            if (current.age > update_minutes)
+            if (current.age >= DB_UPDATE_INTERVAL)
             {
                 db_ipmap_set_utime(db, current.rowid, timestamp->tv_sec);
             }
@@ -424,7 +422,7 @@ void process_icmp6(
         if (strncmp(eth_src_addr_str, current.hwaddr_str, INET6_ADDRSTRLEN) == 0)
         {
             // Time to update the row?
-            if (current.age > update_minutes)
+            if (current.age >= DB_UPDATE_INTERVAL)
             {
                 db_ipmap_set_utime(db, current.rowid, timestamp->tv_sec);
             }
@@ -508,10 +506,10 @@ void pcap_packet_callback(
         // Delete old records
         db_ipmap_delete_old(db, pkthdr->ts.tv_sec - (delete_days * 86400));
 
-    // Perform database maintenance
-    db_maintenance(db);
+        // Perform database maintenance
+        db_maintenance(db);
 
-    // Set the next maintenance time
-    next_maintenance_time = pkthdr->ts.tv_sec + MAINTENANCE_INTERVAL;
+        // Set the next maintenance time
+        next_maintenance_time = pkthdr->ts.tv_sec + DB_UPDATE_INTERVAL;
     }
 }
