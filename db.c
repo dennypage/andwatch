@@ -566,7 +566,7 @@ void db_ipmap_get_current(
     //      ipaddr              ip address (string)
     //
     #define SQL_IPMAP_GET_CURRENT \
-        "SELECT " COL_ROWID ",(unixepoch() - " COL_UTIME ") / 60," COL_HWADDR " FROM " TBL_IPMAP "\n" \
+        "SELECT " COL_ROWID ",(unixepoch() - " COL_UTIME ")," COL_HWADDR " FROM " TBL_IPMAP "\n" \
         "WHERE rowid = (\n" \
             "SELECT rowid\n" \
             "FROM " TBL_IPMAP "\n" \
@@ -715,7 +715,7 @@ void db_ipmap_query(
     //
     #define SQL_QUERY_SELECT_COLUMNS \
         "SELECT datetime(" COL_SEC ",'unixepoch','localtime'),\n" \
-                "(unixepoch() - " COL_UTIME ") / 60,\n" \
+                "(unixepoch() - " COL_UTIME ") / 86400,\n" \
                 COL_IPADDR "," COL_HWADDR ",\n" \
             "coalesce(\n" \
                 "(SELECT " COL_ORG " FROM " TBL_MA_S " WHERE prefix = substr(hwaddr,1,13)),\n" \
