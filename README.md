@@ -52,7 +52,7 @@ If an external notification command is specified, it will be invoked as:
 
 The additional pcap filter may be used to exclude networks or hosts from monitoring. For example, the following:
 
-	-F 'not net fe80::0/10 and not net fd00::0/8'
+	-F 'not net fe80::0/10 and not net fc00::0/7'
 
 would exclude IPv6 link local and private addresses from being monitored by andwatchd.
 
