@@ -272,7 +272,6 @@ void process_icmp6(
 {
     const struct ip6_hdr *      ip6;
     const struct in6_addr *     ip_src_addr;
-    const struct in6_addr *     ip_dst_addr;
 
     const struct icmp6_hdr *    icmp6;
     unsigned long               icmp6_len;
@@ -282,7 +281,6 @@ void process_icmp6(
     unsigned long               nd_opt_len;
 
     char                        ip_src_addr_str[INET6_ADDRSTRLEN];
-    char                        ip_dst_addr_str[INET6_ADDRSTRLEN];
     char                        ip_target_addr_str[INET6_ADDRSTRLEN];
     char                        eth_opt_addr_str[ETH_ADDRSTRLEN] = "\0";
     const char *                old_hwaddr_str = "(none)";
@@ -301,16 +299,9 @@ void process_icmp6(
     packet_len -= sizeof(struct ip6_hdr);
 
     ip_src_addr = (void *) &ip6->ip6_src;
-    ip_dst_addr = (void *) &ip6->ip6_dst;
-
     if (inet_ntop(AF_INET6, ip_src_addr, ip_src_addr_str, sizeof(ip_src_addr_str)) == NULL)
     {
         logger("received packet from %s with invalid source ip address\n", eth_src_addr_str);
-        return;
-    }
-    if (inet_ntop(AF_INET6, ip_dst_addr, ip_dst_addr_str, sizeof(ip_dst_addr_str)) == NULL)
-    {
-        logger("received packet from %s with invalid destination ip address\n", eth_src_addr_str);
         return;
     }
 
@@ -458,9 +449,7 @@ void pcap_packet_callback(
     struct ether_header *       eth;
     u_int16_t                   eth_type;
     struct ether_addr *         eth_src_addr;
-    struct ether_addr *         eth_dst_addr;
     char                        eth_src_addr_str[ETH_ADDRSTRLEN];
-    char                        eth_dst_addr_str[ETH_ADDRSTRLEN];
 
     // Safety check: ensure packet length is sufficient
     if (pkthdr->caplen < sizeof(struct ether_header))
@@ -476,9 +465,7 @@ void pcap_packet_callback(
 
     eth_type = ntohs(eth->ether_type);
     eth_src_addr = (struct ether_addr *) &eth->ether_shost;
-    eth_dst_addr = (struct ether_addr *) &eth->ether_dhost;
     eth_ntop(eth_src_addr, eth_src_addr_str, sizeof(eth_src_addr_str));
-    eth_ntop(eth_dst_addr, eth_dst_addr_str, sizeof(eth_dst_addr_str));
 
     // Safety check: do not process packets from local or broadcast addresses
     if (is_eth_addr_local_or_broadcast(eth_src_addr))
