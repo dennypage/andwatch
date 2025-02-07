@@ -573,10 +573,6 @@ void db_ipmap_get_current(
         safe_strncpy(current->hwaddr_str, (char *) sqlite3_column_text(query_stmt, 2), sizeof(current->hwaddr_str));
         current->valid = 1;
     }
-    else
-    {
-        logger("get ipmap get current failed: %s\n", sqlite3_errmsg(db));
-    }
 
     // Cleanup
     (void) sqlite3_reset(query_stmt);
