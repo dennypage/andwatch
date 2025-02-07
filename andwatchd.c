@@ -45,6 +45,7 @@ static const char *             progname;
 static unsigned int             foreground = 0;
 static unsigned int             promisc = 1;
 static const char *             pidfile_name = NULL;
+static const char *             user_filter = NULL;
 static int                      snaplen = PCAP_SNAPLEN;
 
 
@@ -173,19 +174,21 @@ __attribute__ ((noreturn))
 static void usage(void)
 {
     fprintf(stderr, "Usage:\n");
-    fprintf(stderr, "  %s [-h] [-f] [-s] [-n cmd] [-p file] [-L dir] [-O days] [-P] [-S len] ifname\n", progname);
+    fprintf(stderr, "  %s [-h] [-f] [-s] [-n cmd] [-p file] [-F filter] [-L dir] [-O days] [-P] [-S len] ifname\n", progname);
     fprintf(stderr, "  options:\n");
     fprintf(stderr, "    -h display usage\n");
     fprintf(stderr, "    -f run in foreground\n");
     fprintf(stderr, "    -s log notifications via syslog\n");
     fprintf(stderr, "    -n command for notifications\n");
     fprintf(stderr, "    -p process id file name\n");
+    fprintf(stderr, "    -F additional pcap filter (max %d bytes)\n", PCAP_FILTER_USER_MAX - 1);
     fprintf(stderr, "    -L directory for database files (default: %s)\n", LIB_DIR);
     fprintf(stderr, "    -O number of days before deleting old records (default: %u)\n", DELETE_DAYS);
     fprintf(stderr, "    -P disable promiscuous mode\n");
     fprintf(stderr, "    -S pcap snaplen (default/minimum: %u)\n", PCAP_SNAPLEN);
     fprintf(stderr, "  \nNotes:\n");
     fprintf(stderr, "    The notification command is invoked as \"cmd date_time ifname ipaddr old_hwaddr old_hwaddr_org new_hwaddr new_hwaddr_org\"\n");
+    fprintf(stderr, "    For details on tcpdump/pcap filter formats, see https://www.tcpdump.org/manpages/pcap-filter.7.html\n");
 
     exit(1);
 }
@@ -199,7 +202,7 @@ static void parse_args(
 
     progname = argv[0];
 
-    while((opt = getopt(argc, argv, "hfsn:p:L:O:PS:")) != -1)
+    while((opt = getopt(argc, argv, "hfsn:p:F:L:O:PS:")) != -1)
     {
         switch (opt)
         {
@@ -215,6 +218,13 @@ static void parse_args(
         case 'p':
             pidfile_name = optarg;
             break;
+        case 'F':
+            user_filter = optarg;
+            if (strlen(user_filter) >= PCAP_FILTER_USER_MAX)
+            {
+                usage();
+            }
+            break;
         case 'L':
             lib_dir = optarg;
             break;
@@ -225,7 +235,6 @@ static void parse_args(
                 usage();
             }
             break;
-
         case 'P':
             promisc = 0;
             break;
@@ -247,7 +256,6 @@ static void parse_args(
         usage();
         exit(EXIT_FAILURE);
     }
-
     ifname = argv[optind];
 
     // Safty check: Ensure the library path and interface name are not too long
@@ -323,7 +331,7 @@ int main(
     }
 
     // Start the pcap loop
-    interface_loop(pcap, PCAP_FILTER, pcap_packet_callback, db);
+    interface_loop(pcap, user_filter, pcap_packet_callback, db);
 
     return 0;
 }

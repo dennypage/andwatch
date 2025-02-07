@@ -87,7 +87,7 @@
 #define PCAP_SNAPLEN            (86)
 
 // Filter for pcap
-#define PCAP_FILTER             "arp || (icmp6 && (icmp6[icmp6type] == icmp6-neighborsolicit || icmp6[icmp6type] == icmp6-neighboradvert))"
+#define PCAP_FILTER_USER_MAX    (140)
 
 // Pcap/packet options
 #define PCAP_TIMEOUT            (100)

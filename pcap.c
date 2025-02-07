@@ -34,6 +34,10 @@
 #include "andwatch.h"
 
 
+#define PCAP_FIXED_FILTER       "(arp || (icmp6 && (icmp6[icmp6type] == icmp6-neighborsolicit || icmp6[icmp6type] == icmp6-neighboradvert)))"
+#define PCAP_FILTERBUF_SIZE     (sizeof(PCAP_FIXED_FILTER) + PCAP_FILTER_USER_MAX + sizeof(" and ()"))
+
+
 //
 // Open a pcap session
 //
@@ -44,34 +48,35 @@ pcap_t * interface_open(
 {
     pcap_t *                    pcap;
     int                         r;
+    char                        errbuf[PCAP_ERRBUF_SIZE];
 
-    char errbuf[PCAP_ERRBUF_SIZE];
     memset(errbuf, 0, sizeof(errbuf));
 
+    // Create the pcap session
     pcap = pcap_create(interface, errbuf);
     if (pcap == NULL)
     {
         fatal("pcap_create for interface %s failed: %s\n", interface, errbuf);
     }
 
+    // Set pcap options
     r = pcap_set_snaplen(pcap, snaplen);
     if (r != 0)
     {
         fatal("pcap_set_snaplen failed: %d\n", r);
     }
-
     r = pcap_set_promisc(pcap, promisc);
     if (r != 0)
     {
         fatal("pcap_set_promisc failed: %d\n", r);
     }
-
     r = pcap_set_timeout(pcap, PCAP_TIMEOUT);
     if (r != 0)
     {
         fatal("pcap_set_timeout failed: %d\n", r);
     }
 
+    // Activate the pcap session
     r = pcap_activate(pcap);
     if (r < 0)
     {
@@ -87,24 +92,35 @@ pcap_t * interface_open(
 //
 void interface_loop(
     pcap_t *                    pcap,
-    const char *                filter,
+    const char *                user_filter,
     pcap_handler                callback,
     void *                      closure)
 {
-    struct bpf_program            program;
+    struct bpf_program          program;
+    char                        filter[PCAP_FILTERBUF_SIZE] = PCAP_FIXED_FILTER;
     int                         r;
 
+    // If the user passed in a filter, append it
+    if (user_filter)
+    {
+        snprintf(filter + sizeof(PCAP_FIXED_FILTER) - 1, sizeof(filter) - sizeof(PCAP_FIXED_FILTER), " and (%s)", user_filter);
+    }
+
+    // Compile the filter
     r = pcap_compile(pcap, &program, filter, 1, PCAP_NETMASK_UNKNOWN);
     if (r == PCAP_ERROR)
     {
         fatal("pcap_compile failed: %s\n", pcap_geterr(pcap));
     }
 
+    // Set the filter
     r = pcap_setfilter(pcap, &program);
     if (r != 0)
     {
         fatal("pcap_setfilter failed: %s\n", pcap_geterr(pcap));
     }
+    pcap_freecode(&program);
 
+    // Start the party
     pcap_loop(pcap, 0, callback, closure);
 }

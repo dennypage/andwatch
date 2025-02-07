@@ -38,6 +38,7 @@ The usage of andwatchd is:
 | -s | Log notifications via syslog rather than stdout.
 | -n | Command to send external notifications.
 | -p | Process id file name.
+| -F | Additional pcap filter.
 | -L | Directory for database files (default: /var/lib/andwatch).
 | -O | Number of days before deleting old records (default: 30).
 | -P | Don’t enable promiscuous mode.
@@ -49,7 +50,14 @@ If an external notification command is specified, it will be invoked as:
 
 	command date_time ifname ipaddr old_hwaddr old_hwaddr_org new_hwaddr new_hwaddr_org
 
----
+The additional pcap filter may be used to exclude networks or hosts from monitoring. For example, the following:
+
+	-F 'not net fe80::0/10 and not net fd00::0/8'
+
+would exclude IPv6 link local and private addresses from being monitored by andwatchd.
+
+
+For details on tcpdump/pcap filter formats, see the [pcap-filter](https://www.tcpdump.org/manpages/pcap-filter.7.html) man page.
 
 ## ANDwatch Query (andwatch-query)
 
