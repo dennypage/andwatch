@@ -87,7 +87,7 @@
 #define PCAP_SNAPLEN            (86)
 
 // Filter for pcap
-#define PCAP_FILTER_USER_MAX    (140)
+#define PCAP_FILTER_USER_MAX    (100)
 
 // Pcap/packet options
 #define PCAP_TIMEOUT            (100)

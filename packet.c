@@ -226,9 +226,10 @@ static void process_arp(
         }
     }
 
-    // If the ip address is 0.0.0.0, skip it
+    // Safety check
     if (arp_sender_ipaddr->s_addr == 0)
     {
+        logger("received packet with unexpected arp sender address %s\n", arp_sender_ipaddr_str);
         return;
     }
 
@@ -399,9 +400,10 @@ void process_icmp6(
         packet_len -= nd_opt_len;
     }
 
-    // If the ip address is unspecified, skip it
+    // Safety check
     if (IN6_IS_ADDR_UNSPECIFIED(ip_src_addr))
     {
+        logger("received packet with unexpected source address %s\n", ip_src_addr_str);
         return;
     }
 

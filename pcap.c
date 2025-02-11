@@ -34,8 +34,13 @@
 #include "andwatch.h"
 
 
-#define PCAP_FIXED_FILTER       "(arp || (icmp6 && (icmp6[icmp6type] == icmp6-neighborsolicit || icmp6[icmp6type] == icmp6-neighboradvert)))"
-#define PCAP_FILTERBUF_SIZE     (sizeof(PCAP_FIXED_FILTER) + PCAP_FILTER_USER_MAX + sizeof(" and ()"))
+#define PCAP_FILTERBUF_SIZE     (sizeof(PCAP_FIXED_FILTER) + PCAP_FILTER_USER_MAX + sizeof(" and ()") - 1)
+
+#define PCAP_FIXED_FILTER       "((arp && not src 0) || " \
+                                 "(icmp6 && " \
+                                   "(icmp6[icmp6type] == icmp6-neighborsolicit || " \
+                                    "icmp6[icmp6type] == icmp6-neighboradvert) && " \
+                                   "not src ::))"
 
 
 //

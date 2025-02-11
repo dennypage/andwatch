@@ -181,7 +181,7 @@ static void usage(void)
     fprintf(stderr, "    -s log notifications via syslog\n");
     fprintf(stderr, "    -n command for notifications\n");
     fprintf(stderr, "    -p process id file name\n");
-    fprintf(stderr, "    -F additional pcap filter (max %d bytes)\n", PCAP_FILTER_USER_MAX - 1);
+    fprintf(stderr, "    -F additional pcap filter (max %d bytes)\n", PCAP_FILTER_USER_MAX);
     fprintf(stderr, "    -L directory for database files (default: %s)\n", LIB_DIR);
     fprintf(stderr, "    -O number of days before deleting old records (default: %u)\n", DELETE_DAYS);
     fprintf(stderr, "    -P disable promiscuous mode\n");
@@ -220,7 +220,7 @@ static void parse_args(
             break;
         case 'F':
             user_filter = optarg;
-            if (strlen(user_filter) >= PCAP_FILTER_USER_MAX)
+            if (strlen(user_filter) > PCAP_FILTER_USER_MAX)
             {
                 usage();
             }
