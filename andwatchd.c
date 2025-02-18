@@ -43,7 +43,7 @@
 // Command line variables/flags
 static const char *             progname;
 static unsigned int             foreground = 0;
-static unsigned int             promisc = 1;
+static unsigned int             promisc = 0;
 static const char *             pidfile_name = NULL;
 static const char *             user_filter = NULL;
 static int                      snaplen = PCAP_SNAPLEN;
@@ -179,15 +179,15 @@ static void usage(void)
     fprintf(stderr, "    -h display usage\n");
     fprintf(stderr, "    -f run in foreground\n");
     fprintf(stderr, "    -s log notifications via syslog\n");
-    fprintf(stderr, "    -n command for notifications\n");
+    fprintf(stderr, "    -n notify command\n");
     fprintf(stderr, "    -p process id file name\n");
     fprintf(stderr, "    -F additional pcap filter (max %d bytes)\n", PCAP_FILTER_USER_MAX);
     fprintf(stderr, "    -L directory for database files (default: %s)\n", LIB_DIR);
     fprintf(stderr, "    -O number of days before deleting old records (default: %u)\n", DELETE_DAYS);
-    fprintf(stderr, "    -P disable promiscuous mode\n");
+    fprintf(stderr, "    -P enable promiscuous mode\n");
     fprintf(stderr, "    -S pcap snaplen (default/minimum: %u)\n", PCAP_SNAPLEN);
     fprintf(stderr, "  \nNotes:\n");
-    fprintf(stderr, "    The notification command is invoked as \"cmd date_time ifname ipaddr old_hwaddr old_hwaddr_org new_hwaddr new_hwaddr_org\"\n");
+    fprintf(stderr, "    The notify command is invoked as: cmd date_time ifname hostname ipaddr new_hwaddr new_hwaddr_org old_hwaddr old_hwaddr_org\n");
     fprintf(stderr, "    For details on tcpdump/pcap filter formats, see https://www.tcpdump.org/manpages/pcap-filter.7.html\n");
 
     exit(1);
@@ -236,7 +236,7 @@ static void parse_args(
             }
             break;
         case 'P':
-            promisc = 0;
+            promisc = 1;
             break;
         case 'S':
             snaplen = strtol(optarg, &p, 10);
@@ -299,6 +299,13 @@ int main(
     act.sa_handler = (void (*)(int)) term_handler;
     (void) sigaction(SIGTERM, &act, NULL);
     (void) sigaction(SIGINT, &act, NULL);
+
+    // Ignore SIGCHLD
+    act.sa_handler = SIG_IGN;
+    if (sigaction(SIGCHLD, &act, NULL) != 0)
+    {
+        fatal("sigaction for SIGCHLD failed: %s\n", strerror(errno));
+    }
 
     // Create pid file if requested
     if (pidfile_name)
