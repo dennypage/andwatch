@@ -285,9 +285,11 @@ extern void db_ipmap_query(
 // Change notifications
 extern void change_notification(
     sqlite3 *                   db,
+    const struct timeval *      timeval,
+    int                         af_type,
+    const void *                addr,
     const char *                ipaddr,
-    const char *                old_hwaddr,
     const char *                new_hwaddr,
-    const struct timeval *      timeval);
+    const char *                old_hwaddr);
 
 #endif

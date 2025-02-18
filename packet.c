@@ -257,7 +257,7 @@ static void process_arp(
     db_ipmap_insert(db, DB_IPTYPE_4, arp_sender_ipaddr_str, arp_sender_hwaddr_str, timestamp);
 
     // Notify
-    change_notification(db, arp_sender_ipaddr_str, old_hwaddr_str, arp_sender_hwaddr_str, timestamp);
+    change_notification(db, timestamp, AF_INET, arp_sender_ipaddr, arp_sender_ipaddr_str, arp_sender_hwaddr_str, old_hwaddr_str);
 }
 
 
@@ -431,7 +431,7 @@ void process_icmp6(
     db_ipmap_insert(db, DB_IPTYPE_6, ip_src_addr_str, eth_src_addr_str, timestamp);
 
     // Notify
-    change_notification(db, ip_src_addr_str, old_hwaddr_str, eth_src_addr_str, timestamp);
+    change_notification(db, timestamp, AF_INET6, ip_src_addr, ip_src_addr_str, eth_src_addr_str, old_hwaddr_str);
 }
 
 
