@@ -95,6 +95,8 @@
 // Ethernet address string length
 #define ETH_ADDRSTRLEN          (18)
 
+// Hostname string length
+#define HOSTNAME_LEN            (256)
 
 //
 // Common types and structures
@@ -160,6 +162,20 @@ extern void safe_strncpy(
     char *                      dst,
     const char *                src,
     size_t                      limit);
+
+// Do a reverse lookup on a network address
+extern void reverse_naddr(
+    int                         type,
+    const void *                addr,
+    char *                      host,
+    size_t                      hostlen);
+
+// Do a reverse lookup on a printable (text) address
+extern void reverse_paddr(
+    db_iptype                   type,
+    const char *                addr,
+    char *                      host,
+    size_t                      hostlen);
 
 // Open a pcap interface
 extern pcap_t * interface_open(

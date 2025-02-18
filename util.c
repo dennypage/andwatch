@@ -102,3 +102,101 @@ void safe_strncpy(
     memcpy(dst, src, len);
     dst[len] = '\0';
 }
+
+
+//
+// Do a reverse lookup on a network address
+//
+void reverse_naddr(
+    int                         af_type,
+    const void *                addr,
+    char *                      host,
+    size_t                      hostlen)
+{
+    union {
+        struct sockaddr_storage storage;
+        struct sockaddr         sa;
+        struct sockaddr_in      ipv4_sin;
+        struct sockaddr_in6     ipv6_sin;
+    } sock_addr;
+    size_t                      addrlen;
+    int                         link_local = 0;
+
+    // Set the socket address
+    if (af_type == AF_INET)
+    {
+        sock_addr.ipv4_sin.sin_family = AF_INET;
+        addrlen = sizeof(sock_addr.ipv4_sin);
+        memcpy(&sock_addr.ipv4_sin.sin_addr, addr, sizeof(sock_addr.ipv4_sin.sin_addr));
+
+        if ((sock_addr.ipv4_sin.sin_addr.s_addr & 0xffff0000) == 0xa9fe0000)
+        {
+            link_local = 1;
+        }
+    }
+    else
+    {
+        sock_addr.ipv6_sin.sin6_family = AF_INET6;
+        memcpy(&sock_addr.ipv6_sin.sin6_addr, addr, sizeof(sock_addr.ipv6_sin.sin6_addr));
+        addrlen = sizeof(struct sockaddr_in6);
+
+        if (IN6_IS_ADDR_LINKLOCAL(&sock_addr.ipv6_sin.sin6_addr))
+        {
+            link_local = 1;
+        }
+    }
+
+    // No reverse lookup for link-local addresses
+    if (link_local)
+    {
+        strncpy(host, "(link-local)", hostlen);
+        return;
+    }
+
+    // Do the reverse lookup
+    if (getnameinfo(&sock_addr.sa, addrlen, host, hostlen, NULL, 0, NI_NAMEREQD) != 0)
+    {
+        strncpy(host, "(unknown)", hostlen);
+    }
+}
+
+
+//
+// Do a reverse lookup on a printable (text) address
+//
+void reverse_paddr(
+    db_iptype                   type,
+    const char *                addr,
+    char *                      host,
+    size_t                      hostlen)
+{
+    union {
+        struct in_addr          ipv4_addr;
+        struct in6_addr         ipv6_addr;
+    } ip_addr;
+    int                         af_type = 0;
+
+    if (type == DB_IPTYPE_4)
+    {
+        if (inet_pton(AF_INET, addr, &ip_addr.ipv4_addr) == 1)
+        {
+            af_type = AF_INET;
+        }
+    }
+    else if (type == DB_IPTYPE_6)
+    {
+        if (inet_pton(AF_INET6, addr, &ip_addr.ipv6_addr) == 1)
+        {
+            af_type = AF_INET6;
+        }
+    }
+
+    if (af_type)
+    {
+        reverse_naddr(af_type, &ip_addr, host, hostlen);
+    }
+    else
+    {
+        strncpy(host, "(none)", hostlen);
+    }
+}
