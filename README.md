@@ -36,19 +36,19 @@ The usage of andwatchd is:
 | -h | Display help.
 | -f | Run in foreground. By default, andwatchd runs in the background.
 | -s | Log notifications via syslog rather than stdout.
-| -n | Command to send external notifications.
+| -n | Notify command.
 | -p | Process id file name.
 | -F | Additional pcap filter.
 | -L | Directory for database files (default: /var/lib/andwatch).
 | -O | Number of days before deleting old records (default: 30).
-| -P | Don’t enable promiscuous mode.
+| -P | Enable promiscuous mode.
 | -S | Snapshot length for pcap (default/minimum: 86).
 
 **ifname** is the name of the interface to monitor.
 
-If an external notification command is specified, it will be invoked as:
+If a notify command is specified, the command will be invoked as:
 
-	command date_time ifname ipaddr old_hwaddr old_hwaddr_org new_hwaddr new_hwaddr_org
+	cmd date_time ifname hostname ipaddr new_hwaddr new_hwaddr_org old_hwaddr old_hwaddr_org
 
 The additional pcap filter may be used to exclude networks or hosts from monitoring. For example, the following:
 
@@ -85,6 +85,7 @@ The output of andwatch-query contains the following fields:
 |:-------|:-----------|
 | date time | Timestamp when the record was created. |
 | age | Days since the record was last updated. |
+| hostname | The hostname corresponding to the IP address of the record. |
 | IPaddr | The IP address of the record. |
 | HWaddr | The hardware (Ethernet) address of the record. |
 | MA org | Organization name of the MAC Address assignment. |
