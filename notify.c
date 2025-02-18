@@ -29,12 +29,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
+#include <unistd.h>
+#include <errno.h>
 
 #include "andwatch.h"
 
 
-// The command for externalnotifications
+// External notify command
 const char *                    notify_cmd = NULL;
 
 
@@ -43,15 +46,20 @@ const char *                    notify_cmd = NULL;
 //
 void change_notification(
     sqlite3 *                   db,
+    const struct timeval *      timeval,
+    int                         af_type,
+    const void *                addr,
     const char *                ipaddr,
-    const char *                old_hwaddr,
     const char *                new_hwaddr,
-    const struct timeval *      timeval)
+    const char *                old_hwaddr)
 {
     struct tm *                 tm;
-    char                        old_hwaddr_org[MA_ORG_NAME_LIMIT] = "";
-    char                        new_hwaddr_org[MA_ORG_NAME_LIMIT] = "";
-    char                        system_cmd[4096];
+    pid_t                       pid;
+    char                        new_hwaddr_org[MA_ORG_NAME_LIMIT] = "(none)";
+    char                        old_hwaddr_org[MA_ORG_NAME_LIMIT] = "(none)";
+    const char *                argv[10];
+    char                        timestamp[71];
+    char                        hostname[HOSTNAME_LEN];
 
     // Log the change
     logger("IP address %s changed from %s to %s\n", ipaddr, old_hwaddr, new_hwaddr);
@@ -62,33 +70,51 @@ void change_notification(
         return;
     }
 
-    // Get the old and new hardware orgs
-    if (old_hwaddr[0] != '(')
+    // Fork a child process
+    pid = fork();
+    if (pid == -1)
     {
-        db_query_ma(db, old_hwaddr, old_hwaddr_org);
+        logger("fork failed: %s\n", strerror(errno));
+        return;
     }
+
+    // Parent is done
+    if (pid)
+    {
+        return;
+    }
+
+    // Format the timestamp
+    tm = localtime(&timeval->tv_sec);
+    snprintf(timestamp, sizeof(timestamp), "%04d-%02d-%02d %02d:%02d:%02d",
+        tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+        tm->tm_hour, tm->tm_min, tm->tm_sec);
+
+    // Get the hostname
+    reverse_naddr(af_type, addr, hostname, sizeof(hostname));
+
+    // Get the hardware orgs
     if (new_hwaddr[0] != '(')
     {
         db_query_ma(db, new_hwaddr, new_hwaddr_org);
     }
+    if (old_hwaddr[0] != '(')
+    {
+        db_query_ma(db, old_hwaddr, old_hwaddr_org);
+    }
 
-    // Create the command string
-    tm = localtime(&timeval->tv_sec);
-    snprintf(system_cmd, sizeof(system_cmd), "%s '%04d-%02d-%02d %02d:%02d:%02d' '%s' '%s' '%s' '%s' '%s' '%s' &",
-        notify_cmd,
-        tm->tm_year + 1900,
-        tm->tm_mon + 1,
-        tm->tm_mday,
-        tm->tm_hour,
-        tm->tm_min,
-        tm->tm_sec,
-        ifname,
-        ipaddr,
-        old_hwaddr,
-        old_hwaddr_org,
-        new_hwaddr,
-        new_hwaddr_org);
+    // Build the argv array
+    argv[0] = notify_cmd;
+    argv[1] = timestamp;
+    argv[2] = ifname;
+    argv[3] = hostname;
+    argv[4] = ipaddr;
+    argv[5] = new_hwaddr;
+    argv[6] = new_hwaddr_org;
+    argv[7] = old_hwaddr;
+    argv[8] = old_hwaddr_org;
+    argv[9] = NULL;
 
     // Execute the command
-    (void) system(system_cmd);
+    execv(notify_cmd, (char * const *) argv);
 }
