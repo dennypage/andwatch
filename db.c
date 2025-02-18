@@ -123,7 +123,7 @@ sqlite3 * db_ipmap_open(
     //
     #define SQL_IPMAP_CREATE_TABLE \
         "CREATE TABLE IF NOT EXISTS " TBL_IPMAP " (" \
-            COL_IPTYPE " TEXT NOT NULL," \
+            COL_IPTYPE " INTEGER NOT NULL," \
             COL_IPADDR " TEXT NOT NULL," \
             COL_HWADDR " TEXT NOT NULL," \
             COL_SEC " INTEGER NOT NULL," \
@@ -545,7 +545,7 @@ void db_ipmap_get_current(
         r = sqlite3_prepare_v2(db, SQL_IPMAP_GET_CURRENT, sizeof(SQL_IPMAP_GET_CURRENT), &query_stmt, NULL);
         if (r != SQLITE_OK)
         {
-            logger("get imap current prepare failed: %s\n", sqlite3_errmsg(db));
+            logger("imap get current prepare failed: %s\n", sqlite3_errmsg(db));
             return;
         }
     }
@@ -581,36 +581,6 @@ void db_ipmap_get_current(
 
 
 //
-// Callback for organization lookup
-//
-static int db_query_ma_callback(
-    __attribute__ ((unused))
-    void *                      closure,
-    int                         count,
-    char **                     columns,
-    __attribute__ ((unused))
-    char **                     names)
-{
-    char *                      org = (char *) closure;
-
-    // Expected columns:
-    //      org
-
-    // Safety check
-    if (count < 1)
-    {
-        logger("insufficient columns in ma lookup org callback: %d\n", count);
-        return 1;
-    }
-
-    // Save the information
-    safe_strncpy(org, columns[0], MA_ORG_NAME_LIMIT);
-
-    return 0;
-}
-
-
-//
 // Lookup the organization name for a mac address
 //
 // NB: Parameter org must be at least MA_ORG_NAME_LIMIT characters
@@ -620,6 +590,7 @@ void db_query_ma(
     const char *                hwaddr,
     char *                      org)
 {
+    sqlite3_stmt *              query_stmt;
     char                        sql[ANDWATCH_SQL_BUFFER];
     int                         r;
 
@@ -627,6 +598,9 @@ void db_query_ma(
     //
     // Paramaters:
     //      hwaddr              mac address (string)
+    //
+    // Result columns:
+    //      0 org               organization name (string)
     //
     #define SQL_MA_LOOKUP_ORG \
         "SELECT coalesce(" \
@@ -644,50 +618,31 @@ void db_query_ma(
     // Construct the sql
     snprintf(sql, sizeof(sql), SQL_MA_LOOKUP_ORG, hwaddr, hwaddr, hwaddr, hwaddr);
 
-    // Execute
-    r = sqlite3_exec(db, sql, db_query_ma_callback, org, NULL);
+    // Prepare the statement
+    r = sqlite3_prepare_v2(db, sql, -1, &query_stmt, NULL);
     if (r != SQLITE_OK)
     {
-        logger("ma lookup org failed: %s\n", sqlite3_errmsg(db));
-        safe_strncpy(org, "(failed)", MA_ORG_NAME_LIMIT);
+        fatal("query ma prepare failed: %s\n", sqlite3_errmsg(db));
     }
-}
 
-
-//
-// Callback for printing ipmap entries
-//
-static int db_ipmap_query_callback(
-    __attribute__ ((unused))
-    void *                      closure,
-    int                         count,
-    char **                     columns,
-    __attribute__ ((unused))
-    char **                     names)
-{
-    // Expected columns:
-    //      date_time
-    //      age
-    //      ipaddr
-    //      hwaddr
-    //      org
-
-    // Safety check
-    if (count < 5)
+    // Execute
+    r = sqlite3_step(query_stmt);
+    if (r == SQLITE_ROW)
     {
-        logger("insufficient columns in ipmap print callback: %d\n", count);
-        return 1;
+        safe_strncpy(org, (const char *) sqlite3_column_text(query_stmt, 0), MA_ORG_NAME_LIMIT);
     }
 
-    printf("%s %s %s %s %s\n", columns[0], columns[1], columns[2], columns[3], columns[4]);
-
-    return 0;
+    // Cleanup
+    r = sqlite3_finalize(query_stmt);
+    if (r != SQLITE_OK)
+    {
+        fatal("ma lookup org failed: %s\n", sqlite3_errmsg(db));
+    }
 }
 
 
-
 //
-// Query based on IP address
+// Query the imap table
 //
 void db_ipmap_query(
     sqlite3 *                   db,
@@ -697,15 +652,25 @@ void db_ipmap_query(
 {
     int                         addr_len = 0;
     char                        where[128] = "";
+    sqlite3_stmt *              query_stmt;
     char                        sql[ANDWATCH_SQL_BUFFER];
+    char                        hostname[HOSTNAME_LEN];
     int                         r;
 
     // SQL to select the columns used by query reports
     //
+    // Result columns:
+    //      0 update_time       Timestamp when the record was created
+    //      1 age               Days since the record was last updated
+    //      2 iptype            DB_IPTYPE_4 or DB_IPTYPE_6 (integer)
+    //      3 ipaddr            ip address (string)
+    //      4 hwaddr            hardware address (string)
+    //      5 org               Organization name for the hwaddr
+    //
     #define SQL_QUERY_SELECT_COLUMNS \
         "SELECT datetime(" COL_SEC ",'unixepoch','localtime'),\n" \
                 "(unixepoch() - " COL_UTIME ") / 86400,\n" \
-                COL_IPADDR "," COL_HWADDR ",\n" \
+                COL_IPTYPE "," COL_IPADDR "," COL_HWADDR ",\n" \
             "coalesce(\n" \
                 "(SELECT " COL_ORG " FROM " TBL_MA_S " WHERE prefix = substr(hwaddr,1,13)),\n" \
                 "(SELECT " COL_ORG " FROM " TBL_MA_M " WHERE prefix = substr(hwaddr,1,10)),\n" \
@@ -738,7 +703,7 @@ void db_ipmap_query(
     #define SQL_IPMAP_SELECT_CURRENT_ROWS \
         SQL_QUERY_SELECT_COLUMNS \
         "FROM (\n" \
-            "SELECT " COL_SEC "," COL_USEC "," COL_UTIME "," COL_IPADDR "," COL_HWADDR ",row_number()\n" \
+            "SELECT " COL_SEC "," COL_USEC "," COL_UTIME "," COL_IPTYPE "," COL_IPADDR "," COL_HWADDR ",row_number()\n" \
                 "OVER (\n" \
                     "PARTITION BY " COL_IPADDR "\n" \
                     "ORDER BY " COL_SEC " DESC," COL_USEC " DESC\n" \
@@ -747,7 +712,6 @@ void db_ipmap_query(
         ")\n" \
         "WHERE number = 1\n" \
         SQL_QUERY_ORDER_BY
-
 
     // Safety check: ensure where buffer is large enough
     _Static_assert ((sizeof("WHERE " COL_HWADDR " = ''") + ETH_ADDRSTRLEN + sizeof(" AND " COL_IPTYPE " = ") + 10 < sizeof(where)) &&
@@ -797,7 +761,6 @@ void db_ipmap_query(
         }
     }
 
-
     // Construct the sql
     if (all)
     {
@@ -808,8 +771,30 @@ void db_ipmap_query(
         snprintf(sql, sizeof(sql), SQL_IPMAP_SELECT_CURRENT_ROWS, where);
     }
 
+    // Prepare the statement
+    r = sqlite3_prepare_v2(db, sql, -1, &query_stmt, NULL);
+    if (r != SQLITE_OK)
+    {
+        fatal("imap query prepare failed: %s\n", sqlite3_errmsg(db));
+    }
+
     // Execute
-    r = sqlite3_exec(db, sql, db_ipmap_query_callback, NULL, NULL);
+    while (sqlite3_step(query_stmt) == SQLITE_ROW)
+    {
+        reverse_paddr(sqlite3_column_int(query_stmt, 2),
+                      (char *) sqlite3_column_text(query_stmt, 3),
+                      hostname, sizeof(hostname));
+
+        printf("%s %s %s %s %s %s\n", sqlite3_column_text(query_stmt, 0),
+               sqlite3_column_text(query_stmt, 1),
+               hostname,
+               sqlite3_column_text(query_stmt, 3),
+               sqlite3_column_text(query_stmt, 4),
+               sqlite3_column_text(query_stmt, 5));
+    }
+
+    // Cleanup
+    r = sqlite3_finalize(query_stmt);
     if (r != SQLITE_OK)
     {
         fatal("query failed: %s\n", sqlite3_errmsg(db));
