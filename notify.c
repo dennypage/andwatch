@@ -90,9 +90,6 @@ void change_notification(
         tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
         tm->tm_hour, tm->tm_min, tm->tm_sec);
 
-    // Get the hostname
-    reverse_naddr(af_type, addr, hostname, sizeof(hostname));
-
     // Get the hardware orgs
     if (new_hwaddr[0] != '(')
     {
@@ -102,6 +99,12 @@ void change_notification(
     {
         db_query_ma(db, old_hwaddr, old_hwaddr_org);
     }
+
+    // Pause for a second in case the hostname is still being registered
+    sleep(1);
+
+    // Get the hostname
+    reverse_naddr(af_type, addr, hostname, sizeof(hostname));
 
     // Build the argv array
     argv[0] = notify_cmd;
