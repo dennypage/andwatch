@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <memory.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <syslog.h>
 
 #include "andwatch.h"
