@@ -70,20 +70,6 @@ void change_notification(
         return;
     }
 
-    // Fork a child process
-    pid = fork();
-    if (pid == -1)
-    {
-        logger("fork failed: %s\n", strerror(errno));
-        return;
-    }
-
-    // Parent is done
-    if (pid)
-    {
-        return;
-    }
-
     // Format the timestamp
     tm = localtime(&timeval->tv_sec);
     snprintf(timestamp, sizeof(timestamp), "%04d-%02d-%02d %02d:%02d:%02d",
@@ -98,6 +84,17 @@ void change_notification(
     if (old_hwaddr[0] != '(')
     {
         db_query_ma(db, old_hwaddr, old_hwaddr_org);
+    }
+
+    // Fork a child process
+    pid = fork();
+    if (pid)
+    {
+        if (pid == -1)
+        {
+            logger("fork failed: %s\n", strerror(errno));
+        }
+        return;
     }
 
     // Pause for a second in case the hostname is still being registered
@@ -120,4 +117,8 @@ void change_notification(
 
     // Execute the command
     execv(notify_cmd, (char * const *) argv);
+
+    // Error
+    logger("execv failed: %s\n", strerror(errno));
+    _exit(1);
 }
