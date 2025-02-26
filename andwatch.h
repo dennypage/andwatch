@@ -39,7 +39,7 @@
 
 
 // Version number of andwatch
-#define VERSION                 "2.0.0"
+#define VERSION                 "2.1.0"
 
 // Default directory for the andwatch data files
 #ifndef LIB_DIR
