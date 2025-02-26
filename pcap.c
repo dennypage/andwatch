@@ -29,6 +29,7 @@
 
 
 #include <memory.h>
+#include <fcntl.h>
 #include <pcap.h>
 
 #include "andwatch.h"
@@ -53,6 +54,7 @@ pcap_t * interface_open(
 {
     pcap_t *                    pcap;
     int                         r;
+    int                         fd;
     char                        errbuf[PCAP_ERRBUF_SIZE];
 
     memset(errbuf, 0, sizeof(errbuf));
@@ -75,10 +77,10 @@ pcap_t * interface_open(
     {
         fatal("pcap_set_promisc failed: %d\n", r);
     }
-    r = pcap_set_timeout(pcap, PCAP_TIMEOUT);
+    r = pcap_set_immediate_mode(pcap, 1);
     if (r != 0)
     {
-        fatal("pcap_set_timeout failed: %d\n", r);
+        fatal("pcap_set_immediate_mode failed: %d\n", r);
     }
 
     // Activate the pcap session
@@ -86,6 +88,21 @@ pcap_t * interface_open(
     if (r < 0)
     {
         fatal("pcap_activate failed: %s\n", pcap_geterr(pcap));
+    }
+
+    // Set close on exec for the pcap fd
+    fd = pcap_get_selectable_fd(pcap);
+    if (fd < 0)
+    {
+        logger("pcap_get_selectable_fd failed: %s\n", pcap_geterr(pcap));
+    }
+    else
+    {
+        r = fcntl(fd, F_SETFD, FD_CLOEXEC);
+        if (r < 0)
+        {
+            logger("fcntl FD_CLOEXEC on pcap fd failed: %s\n", pcap_geterr(pcap));
+        }
     }
 
     return pcap;
