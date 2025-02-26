@@ -67,7 +67,7 @@
 #define TMP_SUFFIX              ".tmp"
 
 //
-// Notes on snapshot length for pcap
+// Notes on snapshot length for pcap:
 //
 // IPv4 ARP (fixed size):       42 bytes
 //  ether header                14
@@ -84,13 +84,12 @@
 //      to assume that the link layer address option will be the
 //      first in order to keep the snapshot length small.
 //
-#define PCAP_SNAPLEN            (86)
+// Round up to 128 bytes to be safe
+//
+#define PCAP_SNAPLEN            (128)
 
 // Filter for pcap
 #define PCAP_FILTER_USER_MAX    (100)
-
-// Pcap/packet options
-#define PCAP_TIMEOUT            (100)
 
 // Ethernet address string length
 #define ETH_ADDRSTRLEN          (18)
