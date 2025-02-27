@@ -1,4 +1,4 @@
-# ANDwatch - Arp and Neighbor Discovery Watch daemon
+# ANDwatch - Arp and Neighbor Discovery watch daemon
 
 ANDwatch monitors Arp (IPv4) and Neighbor Discovery (IPv6) packets,
 maintains a database of IP address to hardware address (Ethernet)
