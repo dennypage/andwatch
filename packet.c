@@ -265,7 +265,7 @@ static void process_arp(
 // Process IPv6 ICMP packets
 //
 void process_icmp6(
-     sqlite3 *                  db,
+    sqlite3 *                   db,
     const char *                eth_src_addr_str,
     const unsigned char *       packet,
     unsigned int                packet_len,
