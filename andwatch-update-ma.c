@@ -386,6 +386,7 @@ static void usage(void)
     fprintf(stderr, "  %s [-h] [-D] [-L dir]\n", progname);
     fprintf(stderr, "  options:\n");
     fprintf(stderr, "    -h display usage\n");
+    fprintf(stderr, "    -s log errors via syslog\n");
     fprintf(stderr, "    -D skip download of the mac address csv files\n");
     fprintf(stderr, "    -L directory for library files (default: %s)\n", LIB_DIR);
     fprintf(stderr, "    -U user agent for http (default: %s)\n", user_agent);
@@ -409,10 +410,13 @@ static void parse_args(
 
     progname = argv[0];
 
-    while((opt = getopt(argc, argv, "hDL:")) != -1)
+    while((opt = getopt(argc, argv, "hsDL:")) != -1)
     {
         switch (opt)
         {
+        case 's':
+            flag_syslog = 1;
+            break;
         case 'D':
             flag_download = 0;
             break;
