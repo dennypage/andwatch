@@ -105,6 +105,7 @@ The usage of andwatch-update-ma is:
 | Option | Description                                                       |
 |:-------|:------------------------------------------------------------------|
 | -h | Display help.
+| -s | Log errors via syslog.
 | -D | Skip downloading of the MAC Address csv files from IEEE.
 | -L | Directory for library files (default: /var/lib/andwatch).
 | -U | User agent for http (default: ANDwatch/1.0.0).
