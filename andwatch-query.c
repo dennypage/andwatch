@@ -59,7 +59,7 @@ static void usage(void)
     fprintf(stderr, "    -4 select IPv4 records only\n");
     fprintf(stderr, "    -6 select IPv6 records only\n");
     fprintf(stderr, "    -L directory for library files (default: %s)\n", LIB_DIR);
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 static void parse_args(
@@ -138,5 +138,5 @@ int main(
 
     // Close the database
     db_close(db);
-    return 0;
+    exit(EXIT_SUCCESS);
 }

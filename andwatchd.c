@@ -62,7 +62,7 @@ static void term_handler(
         (void) unlink(pidfile_name);
     }
     logger("exiting on signal %d\n", signum);
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
 
 
@@ -190,7 +190,7 @@ static void usage(void)
     fprintf(stderr, "    The notify command is invoked as: cmd date_time ifname hostname ipaddr new_hwaddr new_hwaddr_org old_hwaddr old_hwaddr_org\n");
     fprintf(stderr, "    For details on tcpdump/pcap filter formats, see https://www.tcpdump.org/manpages/pcap-filter.7.html\n");
 
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 static void parse_args(
@@ -254,7 +254,6 @@ static void parse_args(
     if (argc != optind + 1)
     {
         usage();
-        exit(EXIT_FAILURE);
     }
     ifname = argv[optind];
 

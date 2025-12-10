@@ -54,7 +54,7 @@ static void usage(void)
     fprintf(stderr, "  options:\n");
     fprintf(stderr, "    -h display usage\n");
     fprintf(stderr, "    -L directory for library files (default: %s)\n", LIB_DIR);
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 static void parse_args(

@@ -120,5 +120,5 @@ void change_notification(
 
     // Error
     logger("execv failed: %s\n", strerror(errno));
-    _exit(1);
+    _exit(EXIT_FAILURE);
 }
