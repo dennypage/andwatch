@@ -113,14 +113,14 @@ static CURL * curl_open(void)
     }
 
     // Enable following redirects
-    curlcode = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+    curlcode = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, (long) 1);
     if (curlcode != CURLE_OK)
     {
         fatal("setopt for CURLOPT_URL failed: %s\n", curl_errorbuffer);
     }
 
     // Fail on errors
-    curlcode = curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
+    curlcode = curl_easy_setopt(curl, CURLOPT_FAILONERROR, (long) 1);
     if (curlcode != CURLE_OK)
     {
         fatal("setopt for CURLOPT_FAILONERROR failed: %s\n", curl_errorbuffer);
@@ -132,7 +132,7 @@ static CURL * curl_open(void)
     {
         fatal("setopt for CURLOPT_XFERINFOFUNCTION failed: %s\n", curl_errorbuffer);
     }
-    curlcode = curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+    curlcode = curl_easy_setopt(curl, CURLOPT_NOPROGRESS, (long) 0);
     if (curlcode != CURLE_OK)
     {
         fatal("setopt for CURLOPT_NOPROGRESS failed: %s\n", curl_errorbuffer);
@@ -399,7 +399,7 @@ static void usage(void)
     {
         fprintf(stderr, "    %-47s -> %s/%s%s\n", ma_files[i][1], lib_dir, ma_files[i][0], CSV_SUFFIX);
     }
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 static void parse_args(
@@ -511,5 +511,5 @@ int main(
     // Close the database
     db_close(db);
 
-    return 0;
+    exit(EXIT_SUCCESS);
 }
