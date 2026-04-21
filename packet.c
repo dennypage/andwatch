@@ -123,12 +123,10 @@ static void process_arp(
     u_int16_t                   arp_opcode;
 
     struct ether_addr *         arp_sender_hwaddr;
-    struct ether_addr *         arp_target_hwaddr;
     struct in_addr *            arp_sender_ipaddr;
     struct in_addr *            arp_target_ipaddr;
 
     char                        arp_sender_hwaddr_str[ETH_ADDRSTRLEN];
-    char                        arp_target_hwaddr_str[ETH_ADDRSTRLEN];
     char                        arp_sender_ipaddr_str[INET_ADDRSTRLEN];
     char                        arp_target_ipaddr_str[INET_ADDRSTRLEN];
     const char *                old_hwaddr_str = "(none)";
@@ -178,12 +176,10 @@ static void process_arp(
     }
 
     arp_sender_hwaddr = (struct ether_addr *) arp->arp_sha;
-    arp_target_hwaddr = (struct ether_addr *) arp->arp_tha;
     arp_sender_ipaddr = (struct in_addr *) arp->arp_spa;
     arp_target_ipaddr = (struct in_addr *) arp->arp_tpa;
 
     eth_ntop(arp_sender_hwaddr, arp_sender_hwaddr_str, sizeof(arp_sender_hwaddr_str));
-    eth_ntop(arp_target_hwaddr, arp_target_hwaddr_str, sizeof(arp_target_hwaddr_str));
 
     if (inet_ntop(AF_INET, arp_sender_ipaddr, arp_sender_ipaddr_str, sizeof(arp_sender_ipaddr_str)) == NULL)
     {
@@ -209,21 +205,6 @@ static void process_arp(
             logger("received packet from %s with non matching arp sender hardware addr %s\n",
                 eth_src_addr_str, arp_sender_hwaddr_str);
             return;
-    }
-
-    // Warn if we see an ARP reply with bogus target addresses
-    if (arp_opcode == ARPOP_REPLY)
-    {
-        db_ipmap_get_current(db, DB_IPTYPE_4, arp_target_ipaddr_str, &current);
-        if (current.valid)
-        {
-            if (strncmp(arp_target_hwaddr_str, current.hwaddr_str, ETH_ADDRSTRLEN) != 0)
-            {
-                logger("received packet from %s with unexpected target address for %s: expected %s, received %s\n",
-                    eth_src_addr_str, arp_target_ipaddr_str, current.hwaddr_str, arp_target_hwaddr_str);
-                return;
-            }
-        }
     }
 
     // Safety check
