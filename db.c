@@ -98,8 +98,7 @@ static sqlite3 * db_open(
     // If write is required, ensure the database is not read-only
     if (write == DB_READ_WRITE)
     {
-        r = sqlite3_db_readonly(db, NULL);
-        if (r != SQLITE_OK)
+        if (sqlite3_db_readonly(db, NULL))
         {
             fatal("sqlite3 open of %s failed: read-only database\n", db_filename);
         }
