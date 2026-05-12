@@ -60,7 +60,7 @@ static const char *             user_agent = "ANDwatch/" VERSION;
 static unsigned int             flag_download = 1;
 
 // Buffer for curl error messages
-char                            curl_errorbuffer[CURLOPT_ERRORBUFFER];
+char                            curl_errorbuffer[CURL_ERROR_SIZE];
 
 
 
@@ -271,6 +271,10 @@ void load_malist(
         // Get the registry
         registry = buffer;
         p = strchr(registry, ',');
+        if (p == NULL)
+        {
+            continue;
+        }
         *p = '\0';
 
         // If the registry is not MA-[LMS], skip the line
@@ -283,6 +287,10 @@ void load_malist(
         // Get the assignment
         assignment = p + 1;
         p = strchr(assignment, ',');
+        if (p == NULL)
+        {
+            continue;
+        }
         *p = '\0';
 
         // Get the organization name
@@ -295,6 +303,10 @@ void load_malist(
         else
         {
             p = strchr(organization, ',');
+        }
+        if (p == NULL)
+        {
+            continue;
         }
         *p = '\0';
 
