@@ -1,0 +1,5 @@
+*.o
+andwatchd
+andwatch-query
+andwatch-query-ma
+andwatch-update-ma
