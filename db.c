@@ -270,10 +270,10 @@ void db_ma_recreate_tables(
         "DROP TABLE IF EXISTS " TBL_MA_U ";"
 
     // Drop the existing tables
-    r = sqlite3_exec(db, SQL_MA_CREATE_TABLES, NULL, NULL, NULL);
+    r = sqlite3_exec(db, SQL_MA_DROP_TABLES, NULL, NULL, NULL);
     if (r != SQLITE_OK)
     {
-        fatal("sqlite3 create table failed: %s\n", sqlite3_errmsg(db));
+        fatal("sqlite3 drop table failed: %s\n", sqlite3_errmsg(db));
     }
 
     // Create the new tables
