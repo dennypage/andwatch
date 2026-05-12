@@ -410,7 +410,7 @@ static void parse_args(
 
     progname = argv[0];
 
-    while((opt = getopt(argc, argv, "hsDL:")) != -1)
+    while((opt = getopt(argc, argv, "hsDL:U:")) != -1)
     {
         switch (opt)
         {
