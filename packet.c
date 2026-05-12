@@ -219,7 +219,7 @@ static void process_arp(
     if (current.valid)
     {
         // Is the hardware address unchanged?
-        if (strncmp(arp_sender_hwaddr_str, current.hwaddr_str, INET_ADDRSTRLEN) == 0)
+        if (strncmp(arp_sender_hwaddr_str, current.hwaddr_str, ETH_ADDRSTRLEN) == 0)
         {
             // Time to update the row?
             if (current.age >= DB_UPDATE_INTERVAL)
@@ -393,7 +393,7 @@ void process_icmp6(
     if (current.valid)
     {
         // Is the hardware address unchanged?
-        if (strncmp(eth_src_addr_str, current.hwaddr_str, INET6_ADDRSTRLEN) == 0)
+        if (strncmp(eth_src_addr_str, current.hwaddr_str, ETH_ADDRSTRLEN) == 0)
         {
             // Time to update the row?
             if (current.age >= DB_UPDATE_INTERVAL)
