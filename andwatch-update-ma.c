@@ -77,7 +77,7 @@ static int download_progress_callback(
     __attribute__ ((unused))
     curl_off_t                  ulnow)
 {
-    printf("\r%ldK of %ldK bytes", dlnow / 1024, dltotal / 1024);
+    printf("\r%luK of %luK bytes", (unsigned long) (dlnow / 1024L), (unsigned long) (dltotal / 1024L));
     fflush(stdout);
     return 0;
 }
@@ -109,33 +109,33 @@ static CURL * curl_open(void)
     curlcode = curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent);
     if (curlcode != CURLE_OK)
     {
-        fatal("setopt for CURLOPT_USERAGENT failed: %s\n", curl_errorbuffer);
+        fatal("setopt for CURLOPT_USERAGENT failed: %s\n", curl_easy_strerror(curlcode));
     }
 
     // Enable following redirects
     curlcode = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, (long) 1);
     if (curlcode != CURLE_OK)
     {
-        fatal("setopt for CURLOPT_URL failed: %s\n", curl_errorbuffer);
+        fatal("setopt for CURLOPT_FOLLOWLOCATION failed: %s\n", curl_easy_strerror(curlcode));
     }
 
     // Fail on errors
     curlcode = curl_easy_setopt(curl, CURLOPT_FAILONERROR, (long) 1);
     if (curlcode != CURLE_OK)
     {
-        fatal("setopt for CURLOPT_FAILONERROR failed: %s\n", curl_errorbuffer);
+        fatal("setopt for CURLOPT_FAILONERROR failed: %s\n", curl_easy_strerror(curlcode));
     }
 
     // Enable the progress callback
     curlcode = curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, download_progress_callback);
     if (curlcode != CURLE_OK)
     {
-        fatal("setopt for CURLOPT_XFERINFOFUNCTION failed: %s\n", curl_errorbuffer);
+        fatal("setopt for CURLOPT_XFERINFOFUNCTION failed: %s\n", curl_easy_strerror(curlcode));
     }
     curlcode = curl_easy_setopt(curl, CURLOPT_NOPROGRESS, (long) 0);
     if (curlcode != CURLE_OK)
     {
-        fatal("setopt for CURLOPT_NOPROGRESS failed: %s\n", curl_errorbuffer);
+        fatal("setopt for CURLOPT_NOPROGRESS failed: %s\n", curl_easy_strerror(curlcode));
     }
 
     return curl;
@@ -181,14 +181,14 @@ static void curl_download(
     curlcode = curl_easy_setopt(curl, CURLOPT_WRITEDATA, tmp_file);
     if (curlcode != CURLE_OK)
     {
-        fatal("setopt for CURLOPT_WRITEDATA failed: %s\n", curl_errorbuffer);
+        fatal("setopt for CURLOPT_WRITEDATA failed: %s\n", curl_easy_strerror(curlcode));
     }
 
     // Set the URL
     curlcode = curl_easy_setopt(curl, CURLOPT_URL, url);
     if (curlcode != CURLE_OK)
     {
-        fatal("setopt for CURLOPT_URL failed: %s\n", curl_errorbuffer);
+        fatal("setopt for CURLOPT_URL failed: %s\n", curl_easy_strerror(curlcode));
     }
 
     // Perform the download
@@ -198,7 +198,7 @@ static void curl_download(
     fflush(stdout);
     if (curlcode != CURLE_OK)
     {
-        fatal("download failed: %s\n", curl_errorbuffer);
+        fatal("download failed: %s\n", curl_easy_strerror(curlcode));
     }
 
     // Close the tmp file
@@ -443,13 +443,13 @@ static void parse_args(
         }
     }
 
-    // Safty check: Ensure the path names are not too long
+    // Safety check: Ensure the path names are not too long
     if (ANDWATCH_PATH_BUFFER <= strlen(lib_dir) + sizeof("/") + sizeof(MA_DB_NAME) + sizeof(DB_SUFFIX))
     {
         fatal("db_filename (%s/%s%s) exceeds maximum length of %d\n",
             lib_dir, MA_DB_NAME, DB_SUFFIX, ANDWATCH_PATH_BUFFER);
     }
-    if (ANDWATCH_PATH_BUFFER <= strlen(lib_dir) + sizeof("/") + sizeof(ma_files[0][0]) + sizeof(CSV_SUFFIX))
+    if (ANDWATCH_PATH_BUFFER <= strlen(lib_dir) + sizeof("/") + strlen(ma_files[0][0]) + sizeof(CSV_SUFFIX))
     {
         fatal("db_filename (%s/%s%s) exceeds maximum length of %d\n",
             lib_dir, ma_files[0][0], CSV_SUFFIX, ANDWATCH_PATH_BUFFER);
